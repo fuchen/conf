@@ -1,0 +1,218 @@
+if has("win32") || has("win64")
+    source $VIMRUNTIME/mswin.vim
+    behave mswin
+endif
+
+set nocompatible
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Begin vundle settings
+filetype off                   " required!
+
+set rtp+=$HOME/.vim/bundle/vundle/
+call vundle#rc()
+
+" let Vundle manage Vundle
+" required!
+Bundle 'gmarik/vundle'
+
+" My Bundles here:
+" color schemes
+Bundle 'altercation/vim-colors-solarized'
+Bundle 'noahfrederick/Hemisu'
+Bundle 'tomasr/molokai'
+" plugins
+Bundle 'tsaleh/vim-matchit'
+Bundle 'Lokaltog/vim-easymotion'
+Bundle 'kshenoy/vim-signature'
+Bundle 'godlygeek/tabular'
+Bundle 'plasticboy/vim-markdown'
+Bundle 'waylan/vim-markdown-extra-preview'
+Bundle 'bling/vim-airline'
+Bundle 'scrooloose/syntastic'
+"Bundle 'bling/vim-bufferline'
+Bundle 'kien/ctrlp.vim'
+Bundle 'scrooloose/nerdtree'
+Bundle 'scrooloose/nerdcommenter'
+Bundle 'Valloric/YouCompleteMe'
+Bundle 'tpope/vim-endwise'
+Bundle 'majutsushi/tagbar'
+Bundle 'tomasr/molokai'
+Bundle 'b4winckler/vim-objc'
+
+filetype plugin indent on     " required!
+"
+" Brief help
+" :BundleList          - list configured bundles
+" :BundleInstall(!)    - install(update) bundles
+" :BundleSearch(!) foo - search(or refresh cache first) for foo
+" :BundleClean(!)      - confirm(or auto-approve) removal of unused bundles
+"
+" see :h vundle for more details or wiki for FAQ
+" NOTE: comments after Bundle command are not allowed..
+"
+" end vundle settings
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+colorscheme molokai
+let g:solarized_contrast = "high"
+"if has("gui_running")
+    ""set showtabline=2 " always show tabs in gvim, but not vim
+    "colorscheme visualstudio
+    "set background=light
+"else
+    "colorscheme torte
+"endif
+
+" mappings comes here
+nnoremap <silent><C-Right> :tabnext<CR>
+nnoremap <silent><C-Left> :tabNext<CR>
+nnoremap <silent><C-n> :tabnew<CR>
+nnoremap <F11> :call OpenExplorer()<CR>
+inoremap <F11> <Esc><F11>
+nnoremap <Tab> <C-w>w
+
+" babular
+nnoremap <leader><leader>= :Tab /
+vnoremap <leader><leader>= :Tab /
+
+" settings comes here
+set number
+set tabstop=4
+set shiftwidth=4
+set expandtab
+set list
+set listchars=tab:>-,trail:.,nbsp:.
+set ignorecase
+set scs             "smart case mode
+set tabpagemax=50
+set nobackup        "no backup files
+set nowritebackup   "no backup files
+set encoding=utf-8
+set nobomb
+set laststatus=2
+set hlsearch
+set incsearch
+set virtualedit=onemore
+syntax on
+
+" ctags
+set tags+=$GINC/tags
+map <C-F12> :!ctags -R --c++-kinds=+p --fields=+iaS --extra=+q .<CR>
+
+" gui options
+set guifont=consolas:h12
+
+"set guioptions-=m  "remove menu bar
+set guioptions-=T  "remove toolbar
+set guioptions-=L  "remove left scrollbar
+
+" Custom menu
+amenu &Chen.Copy\ &Full\ Path :let @*=expand("%:p")<CR>
+amenu &Chen.Command\ line\ here :silent ! start cmd<CR>
+
+" NERDTree
+let g:NERDTreeChDirMode = 2
+
+" airline
+let g:airline_enable_syntastic = 1
+"let g:airline_powerline_fonts  = 1
+
+" CtrlP
+let g:ctrlp_by_filename=1
+let g:ctrlp_working_path_mode='ra'
+let g:ctrlp_follow_symlinks=0
+let g:ctrlp_max_files = 5000
+
+" YCM
+let g:ycm_min_num_of_chars_for_completion = 4
+
+" XML folding
+let g:xml_syntax_folding=1
+au FileType xml setlocal foldmethod=syntax
+
+" maximize window on startup
+if has('win32') || has ('win64')
+    au GUIEnter * simalt ~x "x on an English Windows version. n on a French one
+end
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" set up tab labels with tab number, buffer name, number of windows
+function! GuiTabLabel()
+    let label = ''
+    let bufnrlist = tabpagebuflist(v:lnum)
+    " Add '+' if one of the buffers in the tab page is modified
+    for bufnr in bufnrlist
+        if getbufvar(bufnr, "&modified")
+            let label = '+'
+            break
+        endif
+    endfor
+    " Append the tab number
+    let label .= v:lnum.': '
+    " Append the buffer name
+    let name = bufname(bufnrlist[tabpagewinnr(v:lnum) - 1])
+    if name == ''
+        " give a name to no-name documents
+        if &buftype=='quickfix'
+            let name = '[Quickfix List]'
+        else
+            let name = '[No Name]'
+        endif
+    else
+        " get only the file name
+        let name = fnamemodify(name,":t")
+    endif
+    let label .= name
+    " Append the number of windows in the tab page
+    let wincount = tabpagewinnr(v:lnum, '$')
+    return label . '  [' . wincount . ']'
+endfunction
+set guitablabel=%{GuiTabLabel()}
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Open explorer and select current file
+function! OpenExplorer()
+    if @% == ''
+        execute "!start explorer " . shellescape(getcwd())
+    else
+        execute "!start explorer /select," . shellescape(expand('%:p'))
+    endif
+endfunction
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Home key of Visaul Studio
+function! VSStyleHome()
+    let curline = getbufline("%", line("."))[0]
+    let curcol = col(".")
+    let i = 0
+    while curline[i] == "\t" || curline[i] == " "
+       let i += 1
+    endwhile
+    let i += 1
+    if i == curcol
+        call cursor(0, 1)
+    else
+        call cursor(0, i)
+    endif
+endfunction
+
+nnoremap <Home> :call VSStyleHome()<CR>
+inoremap <Home> <C-o>:call VSStyleHome()<CR>
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Find lua call errors
+function! GetErrorLuaCallPattern()
+    let ignores = ['Util\.\w+', 'coroutine\.\w+', 'table\.\w+', 'math\.\w+',
+                \  'debug\.\w+', 'Action\.post', '<\w+>\.init']
+    let pattern = '\v(' . join(ignores, ')@!&(') . ')@!&<\w+>\.<\w+>\('
+    return pattern
+endfunction
+let g:chen_error_lua_call_pattern = GetErrorLuaCallPattern()
+
+amenu &Chen.Find\ Lua\ Calls\ Without\ self
+    \ :exec 'vimgrep /'.chen_error_lua_call_pattern.'/gj % \| cw'<CR>
+amenu &Chen.Find\ All\ &Lua\ Calls\ Without\ self
+    \ :exec 'vimgrep /'.chen_error_lua_call_pattern.'/gj game/*.lua cc/*.lua \| cw'<CR>
+
+
